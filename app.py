@@ -30,7 +30,7 @@ async def download(update: Update, context: CallbackContext):
         ydl_opts = {
             'format': 'mp4',
             'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
-            'cookies': '/path/to/cookies.txt',  # Replace with the actual path to your cookies.txt
+            'cookies': 'cookies.txt',  # Assuming cookies.txt is in the same directory as app.py
         }
 
         # Download the video
@@ -60,7 +60,7 @@ async def download(update: Update, context: CallbackContext):
 
 def main():
     # Set up the bot with your token
-    token = 'YOUR_BOT_API_KEY'  # Replace with your actual Telegram Bot API token
+    token = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your Telegram Bot API token
     updater = Updater(token)
 
     # Get the dispatcher to register handlers
