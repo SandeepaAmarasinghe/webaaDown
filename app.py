@@ -3,7 +3,7 @@ import os
 import moviepy.editor as mp
 import yt_dlp as youtube_dl
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -17,8 +17,8 @@ def compress_video(input_file, output_file):
     video.close()
 
 # Command handler to start the bot
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Hello! Send me a YouTube video URL and I will download it for you.')
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text('Hello! Send me a YouTube video URL and I will download it for you.')
 
 # Function to download and send the video
 async def download(update: Update, context: CallbackContext):
@@ -61,20 +61,18 @@ async def download(update: Update, context: CallbackContext):
 def main():
     # Set up the bot with your token
     token = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your Telegram Bot API token
-    updater = Updater(token)
-
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+    
+    # Use Application class to set up the bot
+    application = Application.builder().token(token).build()
 
     # Add command handler for the /start command
-    dispatcher.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", start))
 
     # Add message handler for receiving URLs
-    dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
 
     # Start the bot
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
