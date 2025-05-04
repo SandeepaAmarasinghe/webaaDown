@@ -3,7 +3,7 @@ import os
 import moviepy.editor as mp
 import yt_dlp as youtube_dl
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -70,7 +70,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
 
     # Add message handler for receiving URLs
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, download))
+    dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
 
     # Start the bot
     updater.start_polling()
