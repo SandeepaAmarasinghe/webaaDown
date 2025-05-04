@@ -1,64 +1,69 @@
 import logging
 import os
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+import shutil
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram import Update
 import yt_dlp as youtube_dl
 
-# === Set up logging ===
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+# -------------------- CONFIG --------------------
+API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your bot token
+COOKIES_FILE = 'cookies.txt'  # Optional for YouTube auth
+
+# -------------------- LOGGER --------------------
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# === Your Bot Token ===
-API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace with your actual bot token
+# -------------------- CHECK FFMPEG --------------------
+if not shutil.which("ffmpeg"):
+    raise EnvironmentError("❌ FFmpeg is not installed. Please install it and add to PATH.")
 
-# === /start command ===
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text('Hi! Send me a YouTube link, and I\'ll download the video for you.')
+# -------------------- HANDLERS --------------------
+async def start(update: Update, context):
+    await update.message.reply_text('👋 Hi! Send me a YouTube or Facebook video URL to download.')
 
-# === Download and Send YouTube Video ===
-async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text
+async def download(update: Update, context):
+    url = update.message.text.strip()
     try:
-        await update.message.reply_text(f"📥 Downloading video from:\n{url}")
+        await update.message.reply_text(f"📥 Downloading from:\n{url}")
 
         # yt-dlp options
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'outtmpl': '/tmp/%(title)s.%(ext)s',
             'merge_output_format': 'mp4',
-            'cookies': 'cookies.txt'  # Use cookies.txt to access restricted videos
+            'noplaylist': True,
+            'quiet': True,
+            'nocheckcertificate': True,
+            'cookies': COOKIES_FILE if os.path.exists(COOKIES_FILE) else None,
         }
 
-        # Download video
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
+            video_path = ydl.prepare_filename(info)
 
-        # Notify user
-        await update.message.reply_text("✅ Download complete. Sending the file...")
+        await update.message.reply_text("✅ Download complete. Uploading...")
 
-        file_size = os.path.getsize(filename)
-        with open(filename, 'rb') as video:
-            if file_size > 49 * 1024 * 1024:
-                # Send as document if > 50MB
-                await update.message.reply_document(document=video, filename=os.path.basename(filename))
+        file_size = os.path.getsize(video_path)
+        max_telegram_size = 49 * 1024 * 1024  # 49 MB
+
+        with open(video_path, 'rb') as f:
+            if file_size > max_telegram_size:
+                await update.message.reply_document(document=f)
             else:
-                # Send as regular video
-                await update.message.reply_video(video=video, filename=os.path.basename(filename))
+                await update.message.reply_video(video=f)
 
-        os.remove(filename)
+        os.remove(video_path)
 
     except Exception as e:
         logger.error(f"❌ Error: {e}")
-        await update.message.reply_text("⚠️ Failed to download or send video. Make sure the link is correct and you are using a valid cookies.txt if needed.")
+        await update.message.reply_text(f"⚠️ Error: {e}")
 
-# === Main Bot Application ===
+# -------------------- MAIN --------------------
 def main():
-    application = Application.builder().token(API_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-    application.run_polling()
+    app = Application.builder().token(API_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
+    app.run_polling()
 
 if __name__ == '__main__':
     main()
