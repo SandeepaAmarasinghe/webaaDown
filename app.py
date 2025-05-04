@@ -22,11 +22,11 @@ async def download(update: Update, context):
     try:
         await update.message.reply_text(f"Downloading video from {url}...")
         
-        # Setup yt-dlp options
+        # Setup yt-dlp options with cookies
         ydl_opts = {
-            'format': 'mp4',  # you can change to other formats if you prefer
+            'format': 'mp4',  # You can change to other formats if you prefer
             'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
-            'cookiefile': 'cookies.txt',  # Optionally use cookies.txt for age-restricted videos
+            'cookiefile': 'cookies.txt',  # Use the exported cookies file for authentication
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
