@@ -1,6 +1,6 @@
+import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram import Update
-import logging
 import yt_dlp as youtube_dl
 import os
 
@@ -10,7 +10,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Your bot token
-API_TOKEN = 'YOUR_BOT_TOKEN'
+API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace this with your bot token
 
 # Function to handle the start command
 async def start(update: Update, context):
@@ -45,11 +45,6 @@ async def download(update: Update, context):
         logger.error(f"Error: {e}")
         await update.message.reply_text(f"Error downloading the video. Please try again later.")
 
-# Error handler function
-async def error(update: Update, context):
-    logger.error(f"Update {update} caused error {context.error}")
-    await update.message.reply_text(f"An error occurred: {context.error}")
-
 # Main function to handle commands and run the bot
 def main():
     # Set up the application
@@ -58,9 +53,6 @@ def main():
     # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-
-    # Add error handler
-    application.add_error_handler(error)
 
     # Start the bot
     application.run_polling()
