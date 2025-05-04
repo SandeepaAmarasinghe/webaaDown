@@ -1,78 +1,48 @@
+import yt_dlp
 import logging
-import os
-import moviepy.editor as mp
-import yt_dlp as youtube_dl
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Your existing bot token and settings
+token = 'YOUR_BOT_TOKEN'  # Replace with your actual bot token
+updater = Updater(token, use_context=True)
 
-# Function to compress video if it's too large
-def compress_video(input_file, output_file):
-    video = mp.VideoFileClip(input_file)
-    video.write_videofile(output_file, bitrate="5000k")
-    video.close()
+# Function to handle YouTube video download
+def download_video(url):
+    # yt-dlp options
+    ydl_opts = {
+        'format': 'mp4',  # or any format you prefer
+        'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
+        'cookies': 'cookies.txt',  # Path to your cookies.txt file
+    }
 
-# Command handler to start the bot
-async def start(update: Update, context: CallbackContext):
-    await update.message.reply_text('Hello! Send me a YouTube video URL and I will download it for you.')
-
-# Function to download and send the video
-async def download(update: Update, context: CallbackContext):
-    url = update.message.text
     try:
-        await update.message.reply_text(f"Downloading video from {url}...")
-
-        # yt-dlp options with cookies for YouTube authentication
-        ydl_opts = {
-            'format': 'mp4',
-            'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
-            'cookies': 'cookies.txt',  # Assuming cookies.txt is in the same directory as app.py
-        }
-
-        # Download the video
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            video_filename = ydl.prepare_filename(info_dict)
-
-        # Check video size
-        video_size = os.path.getsize(video_filename) / (1024 * 1024)  # in MB
-        if video_size > 50:
-            compressed_video_filename = f"/tmp/compressed_{os.path.basename(video_filename)}"
-            compress_video(video_filename, compressed_video_filename)
-            video_filename = compressed_video_filename
-
-        await update.message.reply_text(f"Download complete! Sending the video...")
-
-        # Send the video to Telegram chat
-        with open(video_filename, 'rb') as video_file:
-            await update.message.reply_document(document=video_file)
-
-        # Optionally delete the video after sending
-        os.remove(video_filename)
-
+        # Use yt-dlp to download the video
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])  # Pass the video URL
     except Exception as e:
-        logger.error(f"Error: {e}")
-        await update.message.reply_text(f"Error downloading the video. Please try again later.")
+        print(f"Error downloading video: {str(e)}")
 
-def main():
-    # Set up the bot with your token
-    token = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your Telegram Bot API token
+# Function to handle /start command
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Hello! Send me a YouTube Shorts link, and I'll download it for you.")
+
+# Function to handle received messages (e.g., YouTube URLs)
+def handle_message(update: Update, context: CallbackContext):
+    url = update.message.text  # Get the text message (URL)
     
-    # Use Application class to set up the bot
-    application = Application.builder().token(token).build()
+    # Check if the message is a YouTube Shorts URL
+    if 'youtube.com/shorts/' in url:
+        update.message.reply_text("Downloading video...")
+        download_video(url)  # Call the download function
+        update.message.reply_text("Download complete!")
+    else:
+        update.message.reply_text("Please send a valid YouTube Shorts link.")
 
-    # Add command handler for the /start command
-    application.add_handler(CommandHandler("start", start))
+# Add handlers
+updater.dispatcher.add_handler(CommandHandler('start', start))
+updater.dispatcher.add_handler(MessageHandler(None, handle_message))
 
-    # Add message handler for receiving URLs
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-
-    # Start the bot
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+# Start the bot
+updater.start_polling()
+updater.idle()
