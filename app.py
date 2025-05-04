@@ -1,11 +1,9 @@
 import yt_dlp
-import logging
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-# Your existing bot token and settings
-token = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace with your actual bot token
-updater = Updater(token, use_context=True)
+# Your bot token
+token = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your token here
 
 # Function to handle YouTube video download
 def download_video(url):
@@ -24,25 +22,27 @@ def download_video(url):
         print(f"Error downloading video: {str(e)}")
 
 # Function to handle /start command
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Hello! Send me a YouTube Shorts link, and I'll download it for you.")
+async def start(update: Update, context):
+    await update.message.reply_text("Hello! Send me a YouTube Shorts link, and I'll download it for you.")
 
 # Function to handle received messages (e.g., YouTube URLs)
-def handle_message(update: Update, context: CallbackContext):
+async def handle_message(update: Update, context):
     url = update.message.text  # Get the text message (URL)
     
     # Check if the message is a YouTube Shorts URL
     if 'youtube.com/shorts/' in url:
-        update.message.reply_text("Downloading video...")
+        await update.message.reply_text("Downloading video...")
         download_video(url)  # Call the download function
-        update.message.reply_text("Download complete!")
+        await update.message.reply_text("Download complete!")
     else:
-        update.message.reply_text("Please send a valid YouTube Shorts link.")
+        await update.message.reply_text("Please send a valid YouTube Shorts link.")
+
+# Initialize the application
+application = Application.builder().token(token).build()
 
 # Add handlers
-updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.dispatcher.add_handler(MessageHandler(None, handle_message))
+application.add_handler(CommandHandler('start', start))
+application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
 # Start the bot
-updater.start_polling()
-updater.idle()
+application.run_polling()
