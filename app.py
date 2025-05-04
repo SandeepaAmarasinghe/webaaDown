@@ -1,69 +1,55 @@
 import logging
-import os
-import shutil
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram import Update
 import yt_dlp as youtube_dl
+import os
 
-# -------------------- CONFIG --------------------
-API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your bot token
-COOKIES_FILE = 'cookies.txt'  # Your cookies file (exported from browser)
-
-# -------------------- LOGGER --------------------
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# Set up logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# -------------------- CHECK FFMPEG --------------------
-if not shutil.which("ffmpeg"):
-    raise EnvironmentError("❌ FFmpeg is not installed. Please install it and add to PATH.")
+# Your bot token
+API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace this with your actual bot token
 
-# -------------------- HANDLERS --------------------
+# Function to handle the start command
 async def start(update: Update, context):
-    await update.message.reply_text('👋 Hi! Send me a YouTube or Facebook video URL to download.')
+    await update.message.reply_text('Hi! Send me a YouTube link, and I\'ll download the video for you.')
 
+# Function to download the video and send it back
 async def download(update: Update, context):
-    url = update.message.text.strip()
+    url = update.message.text
     try:
-        await update.message.reply_text(f"📥 Downloading from:\n{url}")
+        await update.message.reply_text(f"Downloading video from {url}...")
 
-        # yt-dlp options
+        # Setup yt-dlp options with cookies support
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'mp4',
             'outtmpl': '/tmp/%(title)s.%(ext)s',
-            'merge_output_format': 'mp4',
-            'noplaylist': True,
-            'quiet': True,
-            'nocheckcertificate': True,
-            'cookies': COOKIES_FILE if os.path.exists(COOKIES_FILE) else None,  # Use cookies file if exists
+            'cookiefile': 'cookies.txt',  # This tells yt-dlp to use your cookies.txt
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            video_path = ydl.prepare_filename(info)
+            info_dict = ydl.extract_info(url, download=True)
+            video_filename = ydl.prepare_filename(info_dict)
 
-        await update.message.reply_text("✅ Download complete. Uploading...")
+        await update.message.reply_text("Download complete! Sending the video...")
 
-        file_size = os.path.getsize(video_path)
-        max_telegram_size = 49 * 1024 * 1024  # 49 MB
+        with open(video_filename, 'rb') as video_file:
+            await update.message.reply_video(video=video_file)
 
-        with open(video_path, 'rb') as f:
-            if file_size > max_telegram_size:
-                await update.message.reply_document(document=f)
-            else:
-                await update.message.reply_video(video=f)
-
-        os.remove(video_path)
+        os.remove(video_filename)
 
     except Exception as e:
-        logger.error(f"❌ Error: {e}")
-        await update.message.reply_text(f"⚠️ Error: {e}")
+        logger.error(f"Error: {e}")
+        await update.message.reply_text("Error downloading the video. Please try again later.")
 
-# -------------------- MAIN --------------------
+# Main function to run the bot
 def main():
-    app = Application.builder().token(API_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-    app.run_polling()
+    application = Application.builder().token(API_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
