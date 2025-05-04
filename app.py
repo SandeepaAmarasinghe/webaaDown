@@ -1,62 +1,63 @@
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+import os
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram import Update
 import yt_dlp as youtube_dl
-import os
 
-# Set up logging
+# === Set up logging ===
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Your bot token
-API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace this with your bot token
+# === Your Bot Token ===
+API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace with your actual bot token
 
-# Function to handle the start command
-async def start(update: Update, context):
+# === /start command ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('Hi! Send me a YouTube link, and I\'ll download the video for you.')
 
-# Function to download the video and send it back
-async def download(update: Update, context):
+# === Download and Send YouTube Video ===
+async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text
     try:
-        await update.message.reply_text(f"Downloading video from {url}...")
-        
-        # Setup yt-dlp options
+        await update.message.reply_text(f"📥 Downloading video from:\n{url}")
+
+        # yt-dlp options
         ydl_opts = {
-            'format': 'mp4',  # you can change to other formats if you prefer
-            'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
-            'cookies': 'cookies.txt',  # Path to your cookies.txt file
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': '/tmp/%(title)s.%(ext)s',
+            'merge_output_format': 'mp4',
+            'cookies': 'cookies.txt'  # Use cookies.txt to access restricted videos
         }
 
-        # Use yt-dlp to download the video
+        # Download video
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            video_filename = ydl.prepare_filename(info_dict)  # Get the filename
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
 
-        await update.message.reply_text(f"Download complete! Sending the video...")
+        # Notify user
+        await update.message.reply_text("✅ Download complete. Sending the file...")
 
-        # Send the video to the Telegram chat
-        with open(video_filename, 'rb') as video_file:
-            await update.message.reply_video(video=video_file)
+        file_size = os.path.getsize(filename)
+        with open(filename, 'rb') as video:
+            if file_size > 49 * 1024 * 1024:
+                # Send as document if > 50MB
+                await update.message.reply_document(document=video, filename=os.path.basename(filename))
+            else:
+                # Send as regular video
+                await update.message.reply_video(video=video, filename=os.path.basename(filename))
 
-        # Optionally delete the video after sending
-        os.remove(video_filename)
+        os.remove(filename)
 
     except Exception as e:
-        logger.error(f"Error: {e}")
-        await update.message.reply_text(f"Error downloading the video. Please try again later.")
+        logger.error(f"❌ Error: {e}")
+        await update.message.reply_text("⚠️ Failed to download or send video. Make sure the link is correct and you are using a valid cookies.txt if needed.")
 
-# Main function to handle commands and run the bot
+# === Main Bot Application ===
 def main():
-    # Set up the application
     application = Application.builder().token(API_TOKEN).build()
-
-    # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-
-    # Start the bot
     application.run_polling()
 
 if __name__ == '__main__':
