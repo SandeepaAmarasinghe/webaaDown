@@ -1,11 +1,16 @@
 # Netscape HTTP Cookie File
-# This is a generated file! Do not edit.
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file!  Do not edit.
 
-.youtube.com    TRUE    /   FALSE   1777902447    __Secure-1PSIDTS   sidts-CjIBjplskCjH_2DrW-WS80_NC0Qz3j46WtMs6eROy-_e51Uzz-yqvsezM5DDX1sfH_segBAA
-.youtube.com    TRUE    /   FALSE   1780926447    __Secure-3PAPISID   YP5VhcJ41qU04a4T/AKLF0fAWoMiXyMNBk
-.youtube.com    TRUE    /   FALSE   1780926447    __Secure-3PSID   g.a000wgiab4iEqgg4c7_b4hQTD7TSq1upYSVg1BYrpf5voUC2HlC11F7xGZOpsoRRTTKXpPNq-QACgYKAbYSARUSFQHGX2MibiDT2FGZ-aqoXjtsaB99DhoVAUF8yKp9EkgtjtMOpZeSbHC8-kxz0076
-.youtube.com    TRUE    /   FALSE   1777902449    __Secure-3PSIDCC   AKEyXzWQfs370_PcXVeBBhgu9Yzy5f-HocEDJIJ2-XeSZpoNvcI5fJLEB5XZGPM4O2ZxBb2n4g
-.youtube.com    TRUE    /   FALSE   1777902447    __Secure-3PSIDTS   sidts-CjIBjplskCjH_2DrW-WS80_NC0Qz3j46WtMs6eROy-_e51Uzz-yqvsezM5DDX1sfH_segBAA
-.youtube.com    TRUE    /   FALSE   1746368246    GPS   1
-.youtube.com    TRUE    /   FALSE   1780926447    LOGIN_INFO   AFmmF2swRAIgbirosVH4P3ICfXoXF1m3ysWffBE-hT6pAwF_Nr9mSAYCIA2UXnYObPrp3MdjqAxnmptp42VkswtaGD7aSurtluDG:QUQ3MjNmemVGT05MRjhuemVzVjR1MF9aYlllSWZ5RkQ1Tl9fMHpjaE92WnpvOGxBVXRZVzVqR0JmUEt6cTMtcnoxZlBRWXVFdDk4eGEtdHcyT3pXdmd3TlIwMjdobXA5cnUtZlVTVFdHV3E5bXFFSzRua1ZQVk5IZm1JdVVqUDQ1SEplVnFBYlB1ZWtVdDlTLXNtTkQ3UFVyYXZJTlpIcGhB
-.youtube.com    TRUE    /   FALSE   1780926447    PREF   f4=4000000&f6=40000000&tz=Asia.Colombo
+.youtube.com	TRUE	/	TRUE	1746368247	GPS	1
+.youtube.com	TRUE	/	TRUE	1780926447	__Secure-3PAPISID	YP5VhcJ41qU04a4T/AKLF0fAWoMiXyMNBk
+.youtube.com	TRUE	/	TRUE	1780926447	__Secure-3PSID	g.a000wgiab4iEqgg4c7_b4hQTD7TSq1upYSVg1BYrpf5voUC2HlC11F7xGZOpsoRRTTKXpPNq-QACgYKAbYSARUSFQHGX2MibiDT2FGZ-aqoXjtsaB99DhoVAUF8yKp9EkgtjtMOpZeSbHC8-kxz0076
+.youtube.com	TRUE	/	TRUE	1780926447	LOGIN_INFO	AFmmF2swRAIgbirosVH4P3ICfXoXF1m3ysWffBE-hT6pAwF_Nr9mSAYCIA2UXnYObPrp3MdjqAxnmptp42VkswtaGD7aSurtluDG:QUQ3MjNmemVGT05MRjhuemVzVjR1MF9aYlllSWZ5RkQ1Tl9fMHpjaE92WnpvOGxBVXRZVzVqR0JmUEt6cTMtcnoxZlBRWXVFdDk4eGEtdHcyT3pXdmd3TlIwMjdobXA5cnUtZlVTVFdHV3E5bXFFSzRua1ZQVk5IZm1JdVVqUDQ1SEplVnFBYlB1ZWtVdDlTLXNtTkQ3UFVyYXZJTlpIcGhB
+.youtube.com	TRUE	/	TRUE	1780927389	PREF	f4=4000000&f6=40000000&tz=Asia.Colombo&f7=100
+.youtube.com	TRUE	/	TRUE	1777903391	__Secure-1PSIDTS	sidts-CjIBjplskCFONND67i7kN9Y_m1FixBc2Z1VqbVaVT8ttMdp_wtZ8_tb-nDHrjPDML4zUuxAA
+.youtube.com	TRUE	/	TRUE	1777903391	__Secure-3PSIDTS	sidts-CjIBjplskCFONND67i7kN9Y_m1FixBc2Z1VqbVaVT8ttMdp_wtZ8_tb-nDHrjPDML4zUuxAA
+.youtube.com	TRUE	/	TRUE	1777903391	__Secure-3PSIDCC	AKEyXzUukG6SdYwMY1AW2E-gqzODza6NN5Qaf6b6CEc0UCfh_A77OR-QGpp5Ham8EvPCw_goaA
+.youtube.com	TRUE	/	TRUE	1761919387	VISITOR_INFO1_LIVE	RSfTMQqAybo
+.youtube.com	TRUE	/	TRUE	1761919387	VISITOR_PRIVACY_METADATA	CgJMSxIEGgAgWQ%3D%3D
+.youtube.com	TRUE	/	TRUE	0	YSC	Wb_OoRJqFyE
+.youtube.com	TRUE	/	TRUE	1761917955	__Secure-ROLLOUT_TOKEN	CLzo5sfs4ISC9wEQ3qbG2brGiQMYuo-6k_iJjQM%3D
