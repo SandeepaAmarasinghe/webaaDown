@@ -26,4 +26,9 @@ jobs:
 
       - name: Run bot
         run: |
-          nohup python app.py &
+          python app.py
+        continue-on-error: true  # Ensures that any errors in the bot run won't stop the workflow
+
+      - name: Show bot logs
+        run: |
+          cat nohup.out || echo "No output yet"
