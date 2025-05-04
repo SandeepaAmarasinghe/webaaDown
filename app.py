@@ -7,6 +7,7 @@ import yt_dlp as youtube_dl
 
 # -------------------- CONFIG --------------------
 API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Your bot token
+COOKIES_FILE = 'cookies.txt'  # Your cookies file (exported from browser)
 
 # -------------------- LOGGER --------------------
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -33,7 +34,7 @@ async def download(update: Update, context):
             'noplaylist': True,
             'quiet': True,
             'nocheckcertificate': True,
-            # No cookies file here
+            'cookies': COOKIES_FILE if os.path.exists(COOKIES_FILE) else None,  # Use cookies file if exists
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
