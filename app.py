@@ -1,40 +1,53 @@
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from telegram import Update
-import yt_dlp as youtube_dl
 import os
+import moviepy.editor as mp
+import yt_dlp as youtube_dl
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-# Set up logging
+# Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Your bot token
-API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace this with your bot token
+# Function to compress video if it's too large
+def compress_video(input_file, output_file):
+    video = mp.VideoFileClip(input_file)
+    video.write_videofile(output_file, bitrate="5000k")
+    video.close()
 
-# Function to handle the start command
-async def start(update: Update, context):
-    await update.message.reply_text('Hi! Send me a YouTube link, and I\'ll download the video for you.')
+# Command handler to start the bot
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text('Hello! Send me a YouTube video URL and I will download it for you.')
 
-# Function to download the video and send it back
-async def download(update: Update, context):
+# Function to download and send the video
+async def download(update: Update, context: CallbackContext):
     url = update.message.text
     try:
         await update.message.reply_text(f"Downloading video from {url}...")
-        
-        # Setup yt-dlp options
+
+        # yt-dlp options with cookies for YouTube authentication
         ydl_opts = {
-            'format': 'mp4',  # you can change to other formats if you prefer
+            'format': 'mp4',
             'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
+            'cookies': '/path/to/cookies.txt',  # Replace with the actual path to your cookies.txt
         }
 
+        # Download the video
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=True)
-            video_filename = ydl.prepare_filename(info_dict)  # Get the filename
+            video_filename = ydl.prepare_filename(info_dict)
+
+        # Check video size
+        video_size = os.path.getsize(video_filename) / (1024 * 1024)  # in MB
+        if video_size > 50:
+            compressed_video_filename = f"/tmp/compressed_{os.path.basename(video_filename)}"
+            compress_video(video_filename, compressed_video_filename)
+            video_filename = compressed_video_filename
 
         await update.message.reply_text(f"Download complete! Sending the video...")
 
-        # Send the video as a document (large files)
+        # Send the video to Telegram chat
         with open(video_filename, 'rb') as video_file:
             await update.message.reply_document(document=video_file)
 
@@ -45,17 +58,23 @@ async def download(update: Update, context):
         logger.error(f"Error: {e}")
         await update.message.reply_text(f"Error downloading the video. Please try again later.")
 
-# Main function to handle commands and run the bot
 def main():
-    # Set up the application
-    application = Application.builder().token(API_TOKEN).build()
+    # Set up the bot with your token
+    token = 'YOUR_BOT_API_KEY'  # Replace with your actual Telegram Bot API token
+    updater = Updater(token)
 
-    # Add handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+    # Add command handler for the /start command
+    dispatcher.add_handler(CommandHandler("start", start))
+
+    # Add message handler for receiving URLs
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, download))
 
     # Start the bot
-    application.run_polling()
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
     main()
