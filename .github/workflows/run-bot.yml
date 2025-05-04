@@ -25,7 +25,6 @@ jobs:
           pip install -r requirements.txt
           yt-dlp --cookies cookies.txt "https://youtube.com/shorts/CbJwbQGLBGs"
 
-
       - name: Run bot
         run: |
           python app.py
