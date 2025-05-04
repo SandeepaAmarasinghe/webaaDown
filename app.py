@@ -1,8 +1,9 @@
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram import Update
-import yt_dlp as youtube_dl
+import yt_dlp
 import os
+import asyncio
 
 # Set up logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -10,51 +11,51 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Your bot token
-API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Replace this with your bot token
+API_TOKEN = '7964156018:AAE8c4sDoI5vBFQoRSzuIKAwySnULxNn-wY'  # Make sure to keep this secure
 
-# Function to handle the start command
+# /start command handler
 async def start(update: Update, context):
-    await update.message.reply_text('Hi! Send me a YouTube link, and I\'ll download the video for you.')
+    await update.message.reply_text("Hi! Send me a YouTube link and I'll download the video for you (max 50MB).")
 
-# Function to download the video and send it back
+# Function to download and send the video
 async def download(update: Update, context):
     url = update.message.text
+    await update.message.reply_text(f"Processing video from {url}...")
+
     try:
-        await update.message.reply_text(f"Downloading video from {url}...")
-        
-        # Setup yt-dlp options
         ydl_opts = {
-            'format': 'mp4',  # you can change to other formats if you prefer
-            'outtmpl': '/tmp/%(title)s.%(ext)s',  # Output path for the video
+            'format': 'bestvideo[ext=mp4][filesize<50M]+bestaudio[ext=m4a]/best[filesize<50M]',
+            'outtmpl': '/tmp/%(title).40s.%(ext)s',  # Trimmed title for filename
+            'merge_output_format': 'mp4',
+            'noplaylist': True,
         }
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            video_filename = ydl.prepare_filename(info_dict)  # Get the filename
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
 
-        await update.message.reply_text(f"Download complete! Sending the video...")
+        file_size = os.path.getsize(filename)
+        if file_size >= 50 * 1024 * 1024:
+            await update.message.reply_text("❌ Sorry, the downloaded video is still too large to send on Telegram.")
+            os.remove(filename)
+            return
 
-        # Send the video to the Telegram chat
-        with open(video_filename, 'rb') as video_file:
-            await update.message.reply_video(video=video_file)
+        await update.message.reply_text("✅ Download complete! Uploading the video...")
 
-        # Optionally delete the video after sending
-        os.remove(video_filename)
+        with open(filename, 'rb') as f:
+            await update.message.reply_video(video=f, timeout=120)
+
+        os.remove(filename)
 
     except Exception as e:
         logger.error(f"Error: {e}")
-        await update.message.reply_text(f"Error downloading the video. Please try again later.")
+        await update.message.reply_text("⚠️ Error downloading or sending the video. Make sure the link is valid and try again.")
 
-# Main function to handle commands and run the bot
+# Start the bot
 def main():
-    # Set up the application
     application = Application.builder().token(API_TOKEN).build()
-
-    # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
-
-    # Start the bot
     application.run_polling()
 
 if __name__ == '__main__':
